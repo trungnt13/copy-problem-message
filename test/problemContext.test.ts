@@ -110,15 +110,17 @@ test("formats diagnostic metadata and clamps code excerpt to document bounds", (
   });
 
   assert.equal(formatted, [
-    "Error (python - Pylance): `\"(\" was not closed`",
+    "Error (source: Pylance): `\"(\" was not closed`",
     "Location: hello.py:5:10",
     "",
     "Relevant code:",
+    "```python",
     "  2 |     print(f\"Hello, World! {i}\")",
     "  3 | ",
     "  4 | if __name__ == \"__main__\":",
     "> 5 |     print(\"Hello, World!\"",
-    "  6 | "
+    "  6 | ",
+    "```"
   ].join("\n"));
 });
 
@@ -144,11 +146,13 @@ test("formats diagnostic metadata with selected text as the code context", () =>
   });
 
   assert.equal(formatted, [
-    "Error (python - Pylance): `\"(\" was not closed`",
+    "Error (source: Pylance): `\"(\" was not closed`",
     "Location: /Users/example/project/hello.py:5:10",
     "",
     "Relevant code:",
-    "print(\"Hello, World!\""
+    "```python",
+    "print(\"Hello, World!\"",
+    "```"
   ].join("\n"));
 });
 
@@ -159,6 +163,7 @@ test("formats selected text without a diagnostic", () => {
       start: position(4, 4),
       end: position(4, 29)
     },
+    languageId: "python",
     selectedText: "\r\nprint(\"Hello, World!\"\r\n"
   });
 
@@ -166,7 +171,9 @@ test("formats selected text without a diagnostic", () => {
     "Location: /Users/example/project/hello.py:5:5",
     "",
     "Selected text:",
-    "print(\"Hello, World!\""
+    "```python",
+    "print(\"Hello, World!\"",
+    "```"
   ].join("\n"));
 });
 

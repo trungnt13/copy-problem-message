@@ -42,6 +42,7 @@ export interface FormatProblemOptions<TDiagnostic extends DiagnosticLike = Diagn
 export interface FormatSelectedContextOptions {
   readonly filePath: string;
   readonly range: RangeLike;
+  readonly languageId?: string;
   readonly selectedText: string;
 }
 
@@ -148,11 +149,11 @@ export function formatProblemContext(options: FormatProblemOptions): string {
     : normalizeSelectedText(options.selectedText);
 
   return [
-    formatProblemHeader(diagnostic, options.document),
+    formatProblemHeader(diagnostic),
     `Location: ${location}`,
     "",
     "Relevant code:",
-    excerpt
+    formatMarkdownCodeBlock(excerpt, options.document.languageId)
   ].join("\n");
 }
 
@@ -163,7 +164,7 @@ export function formatSelectedContext(options: FormatSelectedContextOptions): st
     `Location: ${location}`,
     "",
     "Selected text:",
-    normalizeSelectedText(options.selectedText)
+    formatMarkdownCodeBlock(normalizeSelectedText(options.selectedText), options.languageId)
   ].join("\n");
 }
 
@@ -182,9 +183,8 @@ export function severityLabel(severity: number): string {
   }
 }
 
-function formatProblemHeader(diagnostic: DiagnosticLike, document: TextDocumentLike): string {
-  const sources = [document.languageId, diagnostic.source].filter(Boolean);
-  const sourceContext = sources.length > 0 ? ` (${sources.join(" - ")})` : "";
+function formatProblemHeader(diagnostic: DiagnosticLike): string {
+  const sourceContext = diagnostic.source ? ` (source: ${diagnostic.source})` : "";
 
   return `${severityLabel(diagnostic.severity)}${sourceContext}: ${formatInlineProblemMessage(diagnostic.message)}`;
 }
@@ -246,6 +246,19 @@ function formatInlineProblemMessage(message: string): string {
   }
 
   return `\`${normalizedMessage}\``;
+}
+
+function formatMarkdownCodeBlock(text: string, languageId?: string): string {
+  const language = formatMarkdownLanguage(languageId);
+  return [`\`\`\`${language}`, text, "```"].join("\n");
+}
+
+function formatMarkdownLanguage(languageId?: string): string {
+  if (!languageId) {
+    return "";
+  }
+
+  return /^[A-Za-z0-9_-]+$/.test(languageId) ? languageId : "";
 }
 
 function isAbsoluteFilePath(path: string): boolean {

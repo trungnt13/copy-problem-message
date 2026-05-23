@@ -4,7 +4,10 @@
 
 - Use absolute file paths in copied problem locations when VS Code provides a filesystem path, including user-data documents.
 - Use active selected text as copy-and-run context, including selected text fallback when no problem is nearby.
+- Ask for confirmation before copying or running selected text over 5000 characters.
 - Normalize selected text line endings before copying or running.
+- Wrap context and selected text in Markdown code blocks with the document language.
+- Report diagnostic source in the problem header and leave language to the code block.
 
 ## 0.0.2
 

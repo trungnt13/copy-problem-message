@@ -10,6 +10,7 @@ to the active terminal with a configurable instruction suffix.
 - Sends the copied text to the active terminal for interactive agent CLI workflows.
 - Appends a configurable instruction when copying and running in the terminal.
 - Uses selected text as the terminal context when running with an active selection.
+- Warns for confirmation before copying or running selected text over 5000 characters.
 - Runs selected text even when there is no nearby problem, without appending the suffix.
 - Keeps terminal execution disabled in untrusted workspaces while still copying to the clipboard.
 
@@ -17,17 +18,19 @@ to the active terminal with a configurable instruction suffix.
 
 `Copy Problem Context Agent: Copy for Agent` copies compact problem context:
 
-```text
-Error (python - Pylance): `"(" was not closed`
+````text
+Error (source: Pylance): `"(" was not closed`
 Location: /Users/example/project/hello.py:5:10
 
 Relevant code:
+```python
   2 |     print(f"Hello, World! {i}")
   3 |
   4 | if __name__ == "__main__":
 > 5 |     print("Hello, World!"
   6 |
 ```
+````
 
 `Copy Problem Context Agent: Copy and Run in Terminal` copies and sends the same
 context, then appends the configured suffix as a separate paragraph:
@@ -37,15 +40,19 @@ Understand the root cause and implement fix.
 ```
 
 When text is selected, `Copy and Run in Terminal` uses that selection instead
-of the automatic code excerpt. If no nearby problem exists, it sends only the
-absolute location and selected text, without the suffix:
+of the automatic code excerpt. If the selection is longer than 5000 characters,
+the command asks for confirmation before copying or sending it to the terminal.
+If no nearby problem exists, it sends only the absolute location and selected
+text, without the suffix:
 
-```text
+````text
 Location: /Users/example/project/hello.py:5:5
 
 Selected text:
+```python
 print("Hello, World!"
 ```
+````
 
 ## Commands
 

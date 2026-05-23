@@ -12,10 +12,17 @@ import {
 
 const contextLinesSetting = "contextLines";
 const runSuffixMessageSetting = "runSuffixMessage";
+const maxSelectedTextCharacters = 5_000;
+const confirmLargeSelectionAction = "Continue";
 
 interface RunContextText {
   readonly text: string;
   readonly appendSuffix: boolean;
+}
+
+interface SelectedText {
+  readonly text?: string;
+  readonly canceled: boolean;
 }
 
 export function activate(context: vscode.ExtensionContext): void {
@@ -100,8 +107,12 @@ async function buildRunContextText(): Promise<RunContextText | undefined> {
     return undefined;
   }
 
-  const selectedText = getSelectedText(editor);
-  if (!selectedText) {
+  const selectedText = await getSelectedText(editor);
+  if (selectedText.canceled) {
+    return undefined;
+  }
+
+  if (!selectedText.text) {
     const text = await buildProblemContextText();
     return text ? { text, appendSuffix: true } : undefined;
   }
@@ -116,7 +127,8 @@ async function buildRunContextText(): Promise<RunContextText | undefined> {
       text: formatSelectedContext({
         filePath,
         range: editor.selection,
-        selectedText
+        languageId: editor.document.languageId,
+        selectedText: selectedText.text
       }),
       appendSuffix: false
     };
@@ -128,7 +140,7 @@ async function buildRunContextText(): Promise<RunContextText | undefined> {
       document: editor.document,
       contextLines,
       filePath,
-      selectedText
+      selectedText: selectedText.text
     }),
     appendSuffix: true
   };
@@ -146,13 +158,38 @@ function getConfiguredRunSuffixMessage(): string {
   );
 }
 
-function getSelectedText(editor: vscode.TextEditor): string | undefined {
+async function getSelectedText(editor: vscode.TextEditor): Promise<SelectedText> {
   if (editor.selection.isEmpty) {
-    return undefined;
+    return { canceled: false };
+  }
+
+  const selectedCharacterCount = getSelectionCharacterCount(editor.document, editor.selection);
+  if (selectedCharacterCount > maxSelectedTextCharacters) {
+    const message = `The selected text is ${selectedCharacterCount} characters. `
+      + "Copy and Run can flood the terminal with large selections.";
+    const choice = await vscode.window.showWarningMessage(
+      message,
+      { modal: true },
+      confirmLargeSelectionAction
+    );
+
+    if (choice !== confirmLargeSelectionAction) {
+      return { canceled: true };
+    }
   }
 
   const selectedText = normalizeSelectedText(editor.document.getText(editor.selection));
-  return selectedText.length > 0 ? selectedText : undefined;
+  return {
+    text: selectedText.length > 0 ? selectedText : undefined,
+    canceled: false
+  };
+}
+
+function getSelectionCharacterCount(
+  document: vscode.TextDocument,
+  selection: vscode.Selection
+): number {
+  return document.offsetAt(selection.end) - document.offsetAt(selection.start);
 }
 
 function getDocumentPath(uri: vscode.Uri): string {
