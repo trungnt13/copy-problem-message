@@ -1,8 +1,8 @@
 {
   "name": "copy-problem-context-agent",
-  "displayName": "Copy Problem Message",
-  "description": "Copy VS Code Problems with compact file context for agent prompts or terminal workflows.",
-  "version": "0.0.1",
+  "displayName": "Copy Problem Context Agent",
+  "description": "Copy compact VS Code diagnostic context for agent prompts and terminal workflows.",
+  "version": "0.0.2",
   "publisher": "tngo",
   "private": false,
   "icon": "images/icon.png",
@@ -49,21 +49,26 @@
     "commands": [
       {
         "command": "copyProblemMessage.copy",
-        "title": "Copy Problem Message: Copy With Context"
+        "title": "Copy Problem Context Agent: Copy for Agent"
       },
       {
         "command": "copyProblemMessage.copyAndRun",
-        "title": "Copy Problem Message: Copy With Context and Run in Terminal"
+        "title": "Copy Problem Context Agent: Copy and Run in Terminal"
       }
     ],
     "configuration": {
-      "title": "Copy Problem Message",
+      "title": "Copy Problem Context Agent",
       "properties": {
         "copyProblemMessage.contextLines": {
           "type": "number",
           "default": 3,
           "minimum": 0,
           "markdownDescription": "Number of lines before and after the selected diagnostic to include, and the maximum line distance from the cursor when finding a problem."
+        },
+        "copyProblemMessage.runSuffixMessage": {
+          "type": "string",
+          "default": "Understand the root cause and implement fix.",
+          "markdownDescription": "Message appended to the copied problem context before sending it to the terminal. Set to an empty string to disable the suffix."
         }
       }
     }

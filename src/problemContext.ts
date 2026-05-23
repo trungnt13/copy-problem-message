@@ -39,6 +39,7 @@ export interface FormatProblemOptions<TDiagnostic extends DiagnosticLike = Diagn
 }
 
 const defaultContextLines = 3;
+export const defaultRunSuffixMessage = "Understand the root cause and implement fix.";
 
 export function normalizeContextLines(value: unknown): number {
   if (typeof value !== "number" || !Number.isFinite(value)) {
@@ -46,6 +47,23 @@ export function normalizeContextLines(value: unknown): number {
   }
 
   return Math.max(0, Math.floor(value));
+}
+
+export function normalizeRunSuffixMessage(value: unknown): string {
+  if (typeof value !== "string") {
+    return defaultRunSuffixMessage;
+  }
+
+  return value.trim();
+}
+
+export function appendRunSuffixMessage(text: string, message: string): string {
+  const normalizedMessage = normalizeRunSuffixMessage(message);
+  if (normalizedMessage.length === 0) {
+    return text;
+  }
+
+  return `${text}\n\n${normalizedMessage}`;
 }
 
 export function selectNearestDiagnostic<TDiagnostic extends DiagnosticLike>(

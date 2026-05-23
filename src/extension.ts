@@ -1,11 +1,14 @@
 import * as vscode from "vscode";
 import {
+  appendRunSuffixMessage,
   formatProblemContext,
   normalizeContextLines,
+  normalizeRunSuffixMessage,
   selectNearestDiagnostic
 } from "./problemContext";
 
 const contextLinesSetting = "contextLines";
+const runSuffixMessageSetting = "runSuffixMessage";
 
 export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(
@@ -34,7 +37,8 @@ async function copyProblemMessageAndRun(): Promise<void> {
     return;
   }
 
-  await vscode.env.clipboard.writeText(text);
+  const textWithSuffix = appendRunSuffixMessage(text, getConfiguredRunSuffixMessage());
+  await vscode.env.clipboard.writeText(textWithSuffix);
 
   if (!vscode.workspace.isTrusted) {
     vscode.window.showWarningMessage(
@@ -49,7 +53,7 @@ async function copyProblemMessageAndRun(): Promise<void> {
     return;
   }
 
-  terminal.sendText(text, true);
+  terminal.sendText(textWithSuffix, true);
   terminal.show();
 }
 
@@ -82,6 +86,12 @@ async function buildProblemContextText(): Promise<string | undefined> {
 function getConfiguredContextLines(): number {
   return normalizeContextLines(
     vscode.workspace.getConfiguration("copyProblemMessage").get(contextLinesSetting)
+  );
+}
+
+function getConfiguredRunSuffixMessage(): string {
+  return normalizeRunSuffixMessage(
+    vscode.workspace.getConfiguration("copyProblemMessage").get(runSuffixMessageSetting)
   );
 }
 

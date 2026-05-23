@@ -1,20 +1,22 @@
 # Publishing
 
-This repo is prepared for the Visual Studio Marketplace, but publishing still
-requires local publisher authentication.
+This repo is prepared for Visual Studio Marketplace web upload as
+`tngo.copy-problem-context-agent`.
 
-Official references:
+## Package Identity
 
-- https://code.visualstudio.com/api/working-with-extensions/publishing-extension
-- https://code.visualstudio.com/api/references/extension-manifest
+- Display name: `Copy Problem Context Agent`
+- Publisher: `tngo`
+- Package name: `copy-problem-context-agent`
+- Extension ID: `tngo.copy-problem-context-agent`
+- Current version: `0.0.2`
+- VSIX filename: `copy-problem-context-agent-0.0.2.vsix`
 
 ## Prerequisites
 
 - A Marketplace publisher at https://marketplace.visualstudio.com/manage.
 - The publisher ID must match `publisher` in `package.json`.
-- An Azure DevOps Personal Access Token with `Marketplace > Manage` scope.
-
-Do not commit the token or paste it into chat.
+- A Microsoft account with permission to manage that publisher.
 
 ## Validate
 
@@ -28,20 +30,21 @@ npm run package:list
 Install the generated VSIX locally before the first publish:
 
 ```sh
-code --install-extension ./copy-problem-context-agent-0.0.1.vsix --force
+code --install-extension ./copy-problem-context-agent-0.0.2.vsix --force
 ```
 
 Verify both commands from the Command Palette:
 
-- `Copy Problem Message: Copy With Context`
-- `Copy Problem Message: Copy With Context and Run in Terminal`
+- `Copy Problem Context Agent: Copy for Agent`
+- `Copy Problem Context Agent: Copy and Run in Terminal`
 
-## Publish
+## Upload
 
-```sh
-npm exec -- vsce login tngo
-npm exec -- vsce publish
-```
-
-If your Marketplace publisher ID is not `tngo`, update `publisher` in
-`package.json` before logging in or publishing.
+1. Open https://marketplace.visualstudio.com/manage.
+2. Sign in with the Microsoft account that manages the `tngo` publisher.
+3. Select the `tngo` publisher.
+4. Add or update the extension.
+5. Upload `copy-problem-context-agent-0.0.2.vsix` from this repo root.
+6. Confirm the extension ID is `tngo.copy-problem-context-agent`.
+7. Review the README, icon, license, repository links, and version.
+8. Submit and wait for Marketplace validation to finish.

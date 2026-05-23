@@ -4,8 +4,11 @@ import {
   DiagnosticLike,
   PositionLike,
   TextDocumentLike,
+  appendRunSuffixMessage,
+  defaultRunSuffixMessage,
   formatProblemContext,
   normalizeContextLines,
+  normalizeRunSuffixMessage,
   selectNearestDiagnostic
 } from "../src/problemContext";
 
@@ -13,6 +16,20 @@ test("normalizes context lines", () => {
   assert.equal(normalizeContextLines(4.8), 4);
   assert.equal(normalizeContextLines(-2), 0);
   assert.equal(normalizeContextLines(Number.NaN), 3);
+});
+
+test("normalizes run suffix messages", () => {
+  assert.equal(normalizeRunSuffixMessage(" Fix it. "), "Fix it.");
+  assert.equal(normalizeRunSuffixMessage("   "), "");
+  assert.equal(normalizeRunSuffixMessage(undefined), defaultRunSuffixMessage);
+});
+
+test("appends run suffix messages when present", () => {
+  assert.equal(
+    appendRunSuffixMessage("Problem text", "Understand the root cause and implement fix."),
+    "Problem text\n\nUnderstand the root cause and implement fix."
+  );
+  assert.equal(appendRunSuffixMessage("Problem text", ""), "Problem text");
 });
 
 test("selects a diagnostic containing the cursor before a merely nearby diagnostic", () => {

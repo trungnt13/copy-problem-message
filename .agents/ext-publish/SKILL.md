@@ -1,23 +1,21 @@
 ---
 name: ext-publish
-description: Use this skill when preparing, packaging, uploading, or publishing this VS Code extension to the Visual Studio Marketplace. Enforces manifest readiness, creates a local VSIX package, validates package contents, and prints step-by-step Marketplace upload instructions.
+description: Use this skill when preparing, packaging, or uploading this VS Code extension to the Visual Studio Marketplace. Enforces manifest readiness, creates a local VSIX package, validates package contents, and prints step-by-step Marketplace web upload instructions.
 ---
 
 # VS Code Extension Publishing
 
-Use this workflow for any request to prepare, package, upload, publish, or explain publishing for this extension.
+Use this workflow for any request to prepare, package, upload, or explain Marketplace upload for this extension.
 
 ## Rules
 
-- DO NOT publish, upload, create tags, bump versions, or change Marketplace identity unless the user explicitly asks for that action.
+- DO NOT upload, create tags, bump versions, or change Marketplace identity unless the user explicitly asks for that action.
 - For "prepare", "package", or "ready for publish" requests, create the local VSIX package by default after checks pass.
 - Always print step-by-step Marketplace web upload instructions after creating a VSIX package.
 - Prefer read-only inspection first: `git status --short --branch`, `package.json`, README, icon, and publish metadata.
-- Use official VS Code docs for requirements that may change:
-  - Publishing: `https://code.visualstudio.com/api/working-with-extensions/publishing-extension`
-  - Manifest: `https://code.visualstudio.com/api/references/extension-manifest`
-- Never ask the user to paste a Personal Access Token in chat. If using CLI publish, tell them to create it locally and run `vsce login <publisher>`.
-- For users who do not want a Personal Access Token, recommend web upload of the generated VSIX through the Marketplace publisher management page.
+- Use Marketplace web upload through `https://marketplace.visualstudio.com/manage`.
+- Keep repo docs focused on web upload from the generated VSIX.
+- Keep README, PUBLISHING, CHANGELOG, and SUPPORT synchronized with package name, display name, version, commands, and settings.
 - Preserve unrelated worktree changes. Do not revert user edits.
 
 ## Required Preflight
@@ -29,7 +27,7 @@ node -e "const p=require('./package.json'); console.log(JSON.stringify({name:p.n
 git status --short --branch
 ```
 
-Block or warn before publish when any of these are true:
+Block or warn before upload when any of these are true:
 
 - `publisher` is missing, placeholder-like, or `local`.
 - `private` is `true`.
@@ -58,7 +56,7 @@ For this repo, prefer:
 }
 ```
 
-If the Marketplace rejects `copy-problem-message` because the name is not unique, choose a new extension `name` before first publish. The published extension ID is `<publisher>.<name>`.
+If the Marketplace rejects `copy-problem-context-agent` because the name is not unique, choose a new extension `name` before first upload. The published extension ID is `<publisher>.<name>`.
 
 ## Packaging Validation
 
@@ -108,8 +106,8 @@ code --install-extension ./<extension-name>-<version>.vsix --force
 
 Expected commands:
 
-- `Copy Problem Message: Copy With Context`
-- `Copy Problem Message: Copy With Context and Run in Terminal`
+- `Copy Problem Context Agent: Copy for Agent`
+- `Copy Problem Context Agent: Copy and Run in Terminal`
 
 ## Web Upload Steps
 
@@ -124,37 +122,4 @@ After creating a VSIX, print these steps with the actual publisher, extension ID
 7. Submit the extension and wait for Marketplace validation/scanning to complete.
 8. After it appears, verify the public Marketplace page and install it from VS Code.
 
-Make clear that web upload does not require a PAT, but still requires Microsoft sign-in and publisher permissions.
-
-## Publisher Setup
-
-CLI publishing requires:
-
-- A Visual Studio Marketplace publisher created at `https://marketplace.visualstudio.com/manage`.
-- An Azure DevOps Personal Access Token with `Marketplace > Manage` scope.
-- Local login with the same publisher ID:
-
-```sh
-npm exec --package @vscode/vsce -- vsce login <publisher-id>
-```
-
-Do not store the PAT in repo files, shell history snippets, README examples, or agent output.
-
-## Publish
-
-Only publish with `vsce` after the user explicitly confirms CLI publishing:
-
-```sh
-npm exec --package @vscode/vsce -- vsce publish
-```
-
-Avoid `vsce publish patch`, `minor`, `major`, or an explicit version unless the user wants `vsce` to mutate `package.json` and create the version commit/tag behavior documented by VS Code.
-
-After publish:
-
-```sh
-git status --short --branch
-npm exec --package @vscode/vsce -- vsce show <publisher-id>.<extension-name>
-```
-
-Report the Marketplace URL, version, commit/tag side effects if any, and any manual Marketplace review/scanning status shown by `vsce`.
+Make clear that web upload uses Microsoft sign-in and publisher permissions.
