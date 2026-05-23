@@ -6,9 +6,12 @@ import {
   TextDocumentLike,
   appendRunSuffixMessage,
   defaultRunSuffixMessage,
+  formatDocumentPath,
   formatProblemContext,
+  formatSelectedContext,
   normalizeContextLines,
   normalizeRunSuffixMessage,
+  normalizeSelectedText,
   selectNearestDiagnostic
 } from "../src/problemContext";
 
@@ -30,6 +33,29 @@ test("appends run suffix messages when present", () => {
     "Problem text\n\nUnderstand the root cause and implement fix."
   );
   assert.equal(appendRunSuffixMessage("Problem text", ""), "Problem text");
+});
+
+test("normalizes selected text line endings and outer blank lines", () => {
+  assert.equal(
+    normalizeSelectedText("\r\n\r\n{\r\n  \"key\": \"cmd+n\"\r\n}\r\n\r\n"),
+    "{\n  \"key\": \"cmd+n\"\n}"
+  );
+});
+
+test("formats document paths from absolute fs paths", () => {
+  assert.equal(
+    formatDocumentPath(fakeUri("/Users/example/Library/Application Support/Code/User/keybindings.json")),
+    "/Users/example/Library/Application Support/Code/User/keybindings.json"
+  );
+  assert.equal(formatDocumentPath(fakeUri("C:\\Users\\example\\file.ts")), "C:\\Users\\example\\file.ts");
+  assert.equal(formatDocumentPath(fakeUri("\\\\server\\share\\file.ts")), "\\\\server\\share\\file.ts");
+});
+
+test("falls back to uri strings when no absolute fs path is available", () => {
+  assert.equal(
+    formatDocumentPath(fakeUri("relative/path.ts", "git:/relative/path.ts")),
+    "git:/relative/path.ts"
+  );
 });
 
 test("selects a diagnostic containing the cursor before a merely nearby diagnostic", () => {
@@ -96,6 +122,54 @@ test("formats diagnostic metadata and clamps code excerpt to document bounds", (
   ].join("\n"));
 });
 
+test("formats diagnostic metadata with selected text as the code context", () => {
+  const document = fakeDocument([
+    "def main():",
+    "    print(f\"Hello, World! {i}\")",
+    "",
+    "if __name__ == \"__main__\":",
+    "    print(\"Hello, World!\"",
+    ""
+  ], "python");
+  const formatted = formatProblemContext({
+    diagnostic: {
+      ...diagnostic("\"(\" was not closed", 4, 9, 4, 29),
+      severity: 0,
+      source: "Pylance"
+    },
+    document,
+    contextLines: 3,
+    filePath: "/Users/example/project/hello.py",
+    selectedText: "print(\"Hello, World!\""
+  });
+
+  assert.equal(formatted, [
+    "Error (python - Pylance): `\"(\" was not closed`",
+    "Location: /Users/example/project/hello.py:5:10",
+    "",
+    "Relevant code:",
+    "print(\"Hello, World!\""
+  ].join("\n"));
+});
+
+test("formats selected text without a diagnostic", () => {
+  const formatted = formatSelectedContext({
+    filePath: "/Users/example/project/hello.py",
+    range: {
+      start: position(4, 4),
+      end: position(4, 29)
+    },
+    selectedText: "\r\nprint(\"Hello, World!\"\r\n"
+  });
+
+  assert.equal(formatted, [
+    "Location: /Users/example/project/hello.py:5:5",
+    "",
+    "Selected text:",
+    "print(\"Hello, World!\""
+  ].join("\n"));
+});
+
 function diagnostic(
   message: string,
   startLine: number,
@@ -123,6 +197,15 @@ function fakeDocument(lines: readonly string[], languageId?: string): TextDocume
     languageId,
     lineAt(line: number) {
       return { text: lines[line] };
+    }
+  };
+}
+
+function fakeUri(fsPath: string, uriString = `vscode-userdata:${fsPath}`) {
+  return {
+    fsPath,
+    toString() {
+      return uriString;
     }
   };
 }

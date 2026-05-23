@@ -9,6 +9,8 @@ to the active terminal with a configurable instruction suffix.
 - Formats the problem as compact text with severity, language/source, location, and nearby code.
 - Sends the copied text to the active terminal for interactive agent CLI workflows.
 - Appends a configurable instruction when copying and running in the terminal.
+- Uses selected text as the terminal context when running with an active selection.
+- Runs selected text even when there is no nearby problem, without appending the suffix.
 - Keeps terminal execution disabled in untrusted workspaces while still copying to the clipboard.
 
 ## Copied Format
@@ -17,7 +19,7 @@ to the active terminal with a configurable instruction suffix.
 
 ```text
 Error (python - Pylance): `"(" was not closed`
-Location: hello.py:5:10
+Location: /Users/example/project/hello.py:5:10
 
 Relevant code:
   2 |     print(f"Hello, World! {i}")
@@ -32,6 +34,17 @@ context, then appends the configured suffix as a separate paragraph:
 
 ```text
 Understand the root cause and implement fix.
+```
+
+When text is selected, `Copy and Run in Terminal` uses that selection instead
+of the automatic code excerpt. If no nearby problem exists, it sends only the
+absolute location and selected text, without the suffix:
+
+```text
+Location: /Users/example/project/hello.py:5:5
+
+Selected text:
+print("Hello, World!"
 ```
 
 ## Commands
@@ -68,5 +81,5 @@ Use the `Run Extension` launch configuration to start an Extension Development H
 ## Publishing
 
 Build the VSIX with `npm run package:vsix`, then upload the generated
-`copy-problem-context-agent-0.0.2.vsix` from the Visual Studio Marketplace
+`copy-problem-context-agent-0.0.3.vsix` from the Visual Studio Marketplace
 publisher page.

@@ -1,14 +1,22 @@
 import * as vscode from "vscode";
 import {
   appendRunSuffixMessage,
+  formatDocumentPath,
   formatProblemContext,
+  formatSelectedContext,
   normalizeContextLines,
   normalizeRunSuffixMessage,
+  normalizeSelectedText,
   selectNearestDiagnostic
 } from "./problemContext";
 
 const contextLinesSetting = "contextLines";
 const runSuffixMessageSetting = "runSuffixMessage";
+
+interface RunContextText {
+  readonly text: string;
+  readonly appendSuffix: boolean;
+}
 
 export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(
@@ -32,13 +40,15 @@ async function copyProblemMessage(): Promise<void> {
 }
 
 async function copyProblemMessageAndRun(): Promise<void> {
-  const text = await buildProblemContextText();
-  if (!text) {
+  const context = await buildRunContextText();
+  if (!context) {
     return;
   }
 
-  const textWithSuffix = appendRunSuffixMessage(text, getConfiguredRunSuffixMessage());
-  await vscode.env.clipboard.writeText(textWithSuffix);
+  const text = context.appendSuffix
+    ? appendRunSuffixMessage(context.text, getConfiguredRunSuffixMessage())
+    : context.text;
+  await vscode.env.clipboard.writeText(text);
 
   if (!vscode.workspace.isTrusted) {
     vscode.window.showWarningMessage(
@@ -53,7 +63,7 @@ async function copyProblemMessageAndRun(): Promise<void> {
     return;
   }
 
-  terminal.sendText(textWithSuffix, true);
+  terminal.sendText(text, true);
   terminal.show();
 }
 
@@ -79,8 +89,49 @@ async function buildProblemContextText(): Promise<string | undefined> {
     diagnostic: selection.diagnostic,
     document: editor.document,
     contextLines,
-    filePath: getWorkspaceRelativePath(editor.document.uri)
+    filePath: getDocumentPath(editor.document.uri)
   });
+}
+
+async function buildRunContextText(): Promise<RunContextText | undefined> {
+  const editor = vscode.window.activeTextEditor;
+  if (!editor) {
+    vscode.window.showWarningMessage("Open a file and place the cursor near a problem first.");
+    return undefined;
+  }
+
+  const selectedText = getSelectedText(editor);
+  if (!selectedText) {
+    const text = await buildProblemContextText();
+    return text ? { text, appendSuffix: true } : undefined;
+  }
+
+  const contextLines = getConfiguredContextLines();
+  const diagnostics = vscode.languages.getDiagnostics(editor.document.uri);
+  const selection = selectNearestDiagnostic(diagnostics, editor.selection.active, contextLines);
+  const filePath = getDocumentPath(editor.document.uri);
+
+  if (!selection) {
+    return {
+      text: formatSelectedContext({
+        filePath,
+        range: editor.selection,
+        selectedText
+      }),
+      appendSuffix: false
+    };
+  }
+
+  return {
+    text: formatProblemContext({
+      diagnostic: selection.diagnostic,
+      document: editor.document,
+      contextLines,
+      filePath,
+      selectedText
+    }),
+    appendSuffix: true
+  };
 }
 
 function getConfiguredContextLines(): number {
@@ -95,11 +146,15 @@ function getConfiguredRunSuffixMessage(): string {
   );
 }
 
-function getWorkspaceRelativePath(uri: vscode.Uri): string {
-  const workspaceFolder = vscode.workspace.getWorkspaceFolder(uri);
-  if (!workspaceFolder) {
-    return uri.scheme === "file" ? uri.fsPath : uri.toString(true);
+function getSelectedText(editor: vscode.TextEditor): string | undefined {
+  if (editor.selection.isEmpty) {
+    return undefined;
   }
 
-  return vscode.workspace.asRelativePath(uri, false);
+  const selectedText = normalizeSelectedText(editor.document.getText(editor.selection));
+  return selectedText.length > 0 ? selectedText : undefined;
+}
+
+function getDocumentPath(uri: vscode.Uri): string {
+  return formatDocumentPath(uri);
 }

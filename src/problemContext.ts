@@ -36,6 +36,18 @@ export interface FormatProblemOptions<TDiagnostic extends DiagnosticLike = Diagn
   readonly document: TextDocumentLike;
   readonly contextLines: number;
   readonly filePath: string;
+  readonly selectedText?: string;
+}
+
+export interface FormatSelectedContextOptions {
+  readonly filePath: string;
+  readonly range: RangeLike;
+  readonly selectedText: string;
+}
+
+export interface UriPathLike {
+  readonly fsPath: string;
+  toString(skipEncoding?: boolean): string;
 }
 
 const defaultContextLines = 3;
@@ -64,6 +76,28 @@ export function appendRunSuffixMessage(text: string, message: string): string {
   }
 
   return `${text}\n\n${normalizedMessage}`;
+}
+
+export function normalizeSelectedText(value: string): string {
+  const lines = value.replace(/\r\n?/g, "\n").split("\n");
+
+  while (lines.length > 0 && lines[0].trim().length === 0) {
+    lines.shift();
+  }
+
+  while (lines.length > 0 && lines[lines.length - 1].trim().length === 0) {
+    lines.pop();
+  }
+
+  return lines.join("\n");
+}
+
+export function formatDocumentPath(uri: UriPathLike): string {
+  if (isAbsoluteFilePath(uri.fsPath)) {
+    return uri.fsPath;
+  }
+
+  return uri.toString(true);
 }
 
 export function selectNearestDiagnostic<TDiagnostic extends DiagnosticLike>(
@@ -109,7 +143,9 @@ export function formatProblemContext(options: FormatProblemOptions): string {
   const startLine = Math.max(0, range.start.line - contextLines);
   const endLine = Math.min(options.document.lineCount - 1, range.end.line + contextLines);
   const location = `${options.filePath}:${range.start.line + 1}:${range.start.character + 1}`;
-  const excerpt = formatCodeExcerpt(options.document, startLine, endLine, range);
+  const excerpt = options.selectedText === undefined
+    ? formatCodeExcerpt(options.document, startLine, endLine, range)
+    : normalizeSelectedText(options.selectedText);
 
   return [
     formatProblemHeader(diagnostic, options.document),
@@ -117,6 +153,17 @@ export function formatProblemContext(options: FormatProblemOptions): string {
     "",
     "Relevant code:",
     excerpt
+  ].join("\n");
+}
+
+export function formatSelectedContext(options: FormatSelectedContextOptions): string {
+  const location = `${options.filePath}:${options.range.start.line + 1}:${options.range.start.character + 1}`;
+
+  return [
+    `Location: ${location}`,
+    "",
+    "Selected text:",
+    normalizeSelectedText(options.selectedText)
   ].join("\n");
 }
 
@@ -199,6 +246,12 @@ function formatInlineProblemMessage(message: string): string {
   }
 
   return `\`${normalizedMessage}\``;
+}
+
+function isAbsoluteFilePath(path: string): boolean {
+  return path.startsWith("/")
+    || /^[A-Za-z]:[\\/]/.test(path)
+    || path.startsWith("\\\\");
 }
 
 function formatCodeExcerpt(

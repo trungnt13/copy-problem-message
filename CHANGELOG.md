@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.3
+
+- Use absolute file paths in copied problem locations when VS Code provides a filesystem path, including user-data documents.
+- Use active selected text as copy-and-run context, including selected text fallback when no problem is nearby.
+- Normalize selected text line endings before copying or running.
+
 ## 0.0.2
 
 - Rename the Marketplace package to `copy-problem-context-agent`.

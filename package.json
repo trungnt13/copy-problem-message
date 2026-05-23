@@ -2,7 +2,7 @@
   "name": "copy-problem-context-agent",
   "displayName": "Copy Problem Context Agent",
   "description": "Copy compact VS Code diagnostic context for agent prompts and terminal workflows.",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "publisher": "tngo",
   "private": false,
   "icon": "images/icon.png",
