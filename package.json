@@ -1,0 +1,53 @@
+{
+  "name": "copy-problem-message",
+  "displayName": "Copy Problem Message",
+  "description": "Copy the nearest VS Code problem with file context, or send it to the active terminal.",
+  "version": "0.0.1",
+  "publisher": "local",
+  "private": true,
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:copyProblemMessage.copy",
+    "onCommand:copyProblemMessage.copyAndRun"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "copyProblemMessage.copy",
+        "title": "Copy Problem Message: Copy With Context"
+      },
+      {
+        "command": "copyProblemMessage.copyAndRun",
+        "title": "Copy Problem Message: Copy With Context and Run in Terminal"
+      }
+    ],
+    "configuration": {
+      "title": "Copy Problem Message",
+      "properties": {
+        "copyProblemMessage.contextLines": {
+          "type": "number",
+          "default": 3,
+          "minimum": 0,
+          "markdownDescription": "Number of lines before and after the selected diagnostic to include, and the maximum line distance from the cursor when finding a problem."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "test": "npm run compile && node --test out/test/**/*.test.js"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.10",
+    "@types/vscode": "^1.90.0",
+    "typescript": "^5.7.2"
+  }
+}
