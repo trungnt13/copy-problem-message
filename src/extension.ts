@@ -36,6 +36,13 @@ async function copyProblemMessageAndRun(): Promise<void> {
 
   await vscode.env.clipboard.writeText(text);
 
+  if (!vscode.workspace.isTrusted) {
+    vscode.window.showWarningMessage(
+      "Copied problem message, but running it in a terminal requires a trusted workspace."
+    );
+    return;
+  }
+
   const terminal = vscode.window.activeTerminal;
   if (!terminal) {
     vscode.window.showWarningMessage("Copied problem message, but no active terminal is available.");
@@ -67,7 +74,6 @@ async function buildProblemContextText(): Promise<string | undefined> {
   return formatProblemContext({
     diagnostic: selection.diagnostic,
     document: editor.document,
-    cursor: editor.selection.active,
     contextLines,
     filePath: getWorkspaceRelativePath(editor.document.uri)
   });
@@ -82,7 +88,7 @@ function getConfiguredContextLines(): number {
 function getWorkspaceRelativePath(uri: vscode.Uri): string {
   const workspaceFolder = vscode.workspace.getWorkspaceFolder(uri);
   if (!workspaceFolder) {
-    return uri.fsPath;
+    return uri.scheme === "file" ? uri.fsPath : uri.toString(true);
   }
 
   return vscode.workspace.asRelativePath(uri, false);

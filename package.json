@@ -1,10 +1,32 @@
 {
-  "name": "copy-problem-message",
+  "name": "copy-problem-context-agent",
   "displayName": "Copy Problem Message",
-  "description": "Copy the nearest VS Code problem with file context, or send it to the active terminal.",
+  "description": "Copy VS Code Problems with compact file context for agent prompts or terminal workflows.",
   "version": "0.0.1",
-  "publisher": "local",
-  "private": true,
+  "publisher": "tngo",
+  "private": false,
+  "icon": "images/icon.png",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/trungnt13/copy-problem-message.git"
+  },
+  "bugs": {
+    "url": "https://github.com/trungnt13/copy-problem-message/issues"
+  },
+  "homepage": "https://github.com/trungnt13/copy-problem-message#readme",
+  "keywords": [
+    "agent",
+    "clipboard",
+    "diagnostics",
+    "problems",
+    "terminal"
+  ],
+  "galleryBanner": {
+    "color": "#101820",
+    "theme": "dark"
+  },
+  "pricing": "Free",
   "engines": {
     "vscode": "^1.90.0"
   },
@@ -15,7 +37,14 @@
     "onCommand:copyProblemMessage.copy",
     "onCommand:copyProblemMessage.copyAndRun"
   ],
-  "main": "./out/extension.js",
+  "main": "./out/src/extension.js",
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": "limited",
+      "description": "Copying problem context is supported in Restricted Mode. Sending copied problem text to a terminal requires Workspace Trust."
+    },
+    "virtualWorkspaces": true
+  },
   "contributes": {
     "commands": [
       {
@@ -43,9 +72,12 @@
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "test": "npm run compile && node --test out/test/**/*.test.js"
+    "test": "npm run compile && node --test out/test/**/*.test.js",
+    "package:vsix": "vsce package",
+    "package:list": "vsce ls"
   },
   "devDependencies": {
+    "@vscode/vsce": "^3.9.1",
     "@types/node": "^20.17.10",
     "@types/vscode": "^1.90.0",
     "typescript": "^5.7.2"

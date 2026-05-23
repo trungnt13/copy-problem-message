@@ -1,0 +1,13 @@
+.vscode/**
+.agents/**
+AGENTS.md
+PUBLISHING.md
+src/**
+test/**
+tsconfig.json
+package-lock.json
+node_modules/**
+out/test/**
+*.vsix
+*.map
+.gitignore

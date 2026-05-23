@@ -34,7 +34,6 @@ export interface SelectedDiagnostic<TDiagnostic extends DiagnosticLike = Diagnos
 export interface FormatProblemOptions<TDiagnostic extends DiagnosticLike = DiagnosticLike> {
   readonly diagnostic: TDiagnostic;
   readonly document: TextDocumentLike;
-  readonly cursor: PositionLike;
   readonly contextLines: number;
   readonly filePath: string;
 }
@@ -91,21 +90,12 @@ export function formatProblemContext(options: FormatProblemOptions): string {
   const range = diagnostic.range;
   const startLine = Math.max(0, range.start.line - contextLines);
   const endLine = Math.min(options.document.lineCount - 1, range.end.line + contextLines);
-  const severity = severityLabel(diagnostic.severity);
-  const source = diagnostic.source ? `\nSource: ${diagnostic.source}` : "";
-  const code = diagnostic.code !== undefined ? `\nCode: ${formatDiagnosticCode(diagnostic.code)}` : "";
-  const language = options.document.languageId ? `\nLanguage: ${options.document.languageId}` : "";
   const location = `${options.filePath}:${range.start.line + 1}:${range.start.character + 1}`;
-  const cursorLocation = `${options.filePath}:${options.cursor.line + 1}:${options.cursor.character + 1}`;
   const excerpt = formatCodeExcerpt(options.document, startLine, endLine, range);
 
   return [
-    "Problem:",
-    diagnostic.message,
-    "",
-    `Severity: ${severity}`,
+    formatProblemHeader(diagnostic, options.document),
     `Location: ${location}`,
-    `Cursor: ${cursorLocation}${source}${code}${language}`,
     "",
     "Relevant code:",
     excerpt
@@ -125,6 +115,13 @@ export function severityLabel(severity: number): string {
     default:
       return "Unknown";
   }
+}
+
+function formatProblemHeader(diagnostic: DiagnosticLike, document: TextDocumentLike): string {
+  const sources = [document.languageId, diagnostic.source].filter(Boolean);
+  const sourceContext = sources.length > 0 ? ` (${sources.join(" - ")})` : "";
+
+  return `${severityLabel(diagnostic.severity)}${sourceContext}: ${formatInlineProblemMessage(diagnostic.message)}`;
 }
 
 function isDiagnosticWithinLineWindow(
@@ -173,12 +170,17 @@ function comparePosition(left: PositionLike, right: PositionLike): number {
   return left.character - right.character;
 }
 
-function formatDiagnosticCode(code: NonNullable<DiagnosticLike["code"]>): string {
-  if (typeof code === "object") {
-    return String(code.value);
+function formatInlineProblemMessage(message: string): string {
+  const normalizedMessage = message.trim().replace(/\s+/g, " ");
+  if (normalizedMessage.length === 0) {
+    return "``";
   }
 
-  return String(code);
+  if (normalizedMessage.includes("`")) {
+    return normalizedMessage;
+  }
+
+  return `\`${normalizedMessage}\``;
 }
 
 function formatCodeExcerpt(

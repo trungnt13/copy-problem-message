@@ -47,29 +47,36 @@ test("ignores diagnostics outside the configured line window", () => {
 });
 
 test("formats diagnostic metadata and clamps code excerpt to document bounds", () => {
-  const document = fakeDocument(["const x: string = 1;", "console.log(x);"], "typescript");
+  const document = fakeDocument([
+    "def main():",
+    "    print(f\"Hello, World! {i}\")",
+    "",
+    "if __name__ == \"__main__\":",
+    "    print(\"Hello, World!\"",
+    ""
+  ], "python");
   const formatted = formatProblemContext({
     diagnostic: {
-      ...diagnostic("Type 'number' is not assignable to type 'string'.", 0, 16, 0, 17),
+      ...diagnostic("\"(\" was not closed", 4, 9, 4, 29),
       severity: 0,
-      source: "ts",
-      code: 2322
+      source: "Pylance"
     },
     document,
-    cursor: position(0, 18),
     contextLines: 3,
-    filePath: "src/example.ts"
+    filePath: "hello.py"
   });
 
-  assert.match(formatted, /Problem:\nType 'number' is not assignable to type 'string'\./);
-  assert.match(formatted, /Severity: Error/);
-  assert.match(formatted, /Location: src\/example\.ts:1:17/);
-  assert.match(formatted, /Cursor: src\/example\.ts:1:19/);
-  assert.match(formatted, /Source: ts/);
-  assert.match(formatted, /Code: 2322/);
-  assert.match(formatted, /Language: typescript/);
-  assert.match(formatted, /> 1 \| const x: string = 1;/);
-  assert.match(formatted, /  2 \| console\.log\(x\);/);
+  assert.equal(formatted, [
+    "Error (python - Pylance): `\"(\" was not closed`",
+    "Location: hello.py:5:10",
+    "",
+    "Relevant code:",
+    "  2 |     print(f\"Hello, World! {i}\")",
+    "  3 | ",
+    "  4 | if __name__ == \"__main__\":",
+    "> 5 |     print(\"Hello, World!\"",
+    "  6 | "
+  ].join("\n"));
 });
 
 function diagnostic(
