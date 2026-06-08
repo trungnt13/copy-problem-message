@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import {
   appendRunSuffixMessage,
+  formatCurrentLineContext,
   formatDocumentPath,
   formatProblemContext,
   formatSelectedContext,
@@ -22,6 +23,8 @@ interface RunContextText {
 
 interface SelectedText {
   readonly text?: string;
+  readonly range?: vscode.Range;
+  readonly source?: "selection" | "currentLine";
   readonly canceled: boolean;
 }
 
@@ -112,7 +115,7 @@ async function buildRunContextText(): Promise<RunContextText | undefined> {
     return undefined;
   }
 
-  if (!selectedText.text) {
+  if (!selectedText.text || !selectedText.range) {
     const text = await buildProblemContextText();
     return text ? { text, appendSuffix: true } : undefined;
   }
@@ -123,10 +126,22 @@ async function buildRunContextText(): Promise<RunContextText | undefined> {
   const filePath = getDocumentPath(editor.document.uri);
 
   if (!selection) {
+    if (selectedText.source === "currentLine") {
+      return {
+        text: formatCurrentLineContext({
+          filePath,
+          range: selectedText.range,
+          languageId: editor.document.languageId,
+          text: selectedText.text
+        }),
+        appendSuffix: false
+      };
+    }
+
     return {
       text: formatSelectedContext({
         filePath,
-        range: editor.selection,
+        range: selectedText.range,
         languageId: editor.document.languageId,
         selectedText: selectedText.text
       }),
@@ -160,29 +175,63 @@ function getConfiguredRunSuffixMessage(): string {
 
 async function getSelectedText(editor: vscode.TextEditor): Promise<SelectedText> {
   if (editor.selection.isEmpty) {
-    return { canceled: false };
+    return getCurrentLineText(editor);
   }
 
   const selectedCharacterCount = getSelectionCharacterCount(editor.document, editor.selection);
-  if (selectedCharacterCount > maxSelectedTextCharacters) {
-    const message = `The selected text is ${selectedCharacterCount} characters. `
-      + "Copy and Run can flood the terminal with large selections.";
-    const choice = await vscode.window.showWarningMessage(
-      message,
-      { modal: true },
-      confirmLargeSelectionAction
-    );
-
-    if (choice !== confirmLargeSelectionAction) {
-      return { canceled: true };
-    }
+  if (!await confirmLargeRunText("selected text", selectedCharacterCount)) {
+    return { canceled: true };
   }
 
   const selectedText = normalizeSelectedText(editor.document.getText(editor.selection));
   return {
     text: selectedText.length > 0 ? selectedText : undefined,
+    range: editor.selection,
+    source: "selection",
     canceled: false
   };
+}
+
+async function getCurrentLineText(editor: vscode.TextEditor): Promise<SelectedText> {
+  const lineNumber = editor.selection.active.line;
+  if (lineNumber < 0 || lineNumber >= editor.document.lineCount) {
+    vscode.window.showWarningMessage("Place the cursor on a valid line before using Copy and Run in Terminal.");
+    return { canceled: true };
+  }
+
+  const line = editor.document.lineAt(lineNumber);
+  const text = normalizeSelectedText(line.text);
+  if (text.length === 0) {
+    vscode.window.showWarningMessage("Current line is empty. Select text or move the cursor to a non-empty line first.");
+    return { canceled: true };
+  }
+
+  if (!await confirmLargeRunText("current line", line.text.length)) {
+    return { canceled: true };
+  }
+
+  return {
+    text,
+    range: line.range,
+    source: "currentLine",
+    canceled: false
+  };
+}
+
+async function confirmLargeRunText(label: string, characterCount: number): Promise<boolean> {
+  if (characterCount <= maxSelectedTextCharacters) {
+    return true;
+  }
+
+  const message = `The ${label} is ${characterCount} characters. `
+    + "Copy and Run can flood the terminal with large input.";
+  const choice = await vscode.window.showWarningMessage(
+    message,
+    { modal: true },
+    confirmLargeSelectionAction
+  );
+
+  return choice === confirmLargeSelectionAction;
 }
 
 function getSelectionCharacterCount(

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.0.4
+
+- Use the current line as copy-and-run terminal context when no text is selected.
+- Keep empty current lines from being sent to the terminal.
+
 ## 0.0.3
 
 - Use absolute file paths in copied problem locations when VS Code provides a filesystem path, including user-data documents.

@@ -46,6 +46,13 @@ export interface FormatSelectedContextOptions {
   readonly selectedText: string;
 }
 
+export interface FormatCurrentLineContextOptions {
+  readonly filePath: string;
+  readonly range: RangeLike;
+  readonly languageId?: string;
+  readonly text: string;
+}
+
 export interface UriPathLike {
   readonly fsPath: string;
   toString(skipEncoding?: boolean): string;
@@ -158,14 +165,23 @@ export function formatProblemContext(options: FormatProblemOptions): string {
 }
 
 export function formatSelectedContext(options: FormatSelectedContextOptions): string {
-  const location = `${options.filePath}:${options.range.start.line + 1}:${options.range.start.character + 1}`;
+  return formatTextContext({
+    filePath: options.filePath,
+    range: options.range,
+    languageId: options.languageId,
+    label: "Selected text:",
+    text: options.selectedText
+  });
+}
 
-  return [
-    `Location: ${location}`,
-    "",
-    "Selected text:",
-    formatMarkdownCodeBlock(normalizeSelectedText(options.selectedText), options.languageId)
-  ].join("\n");
+export function formatCurrentLineContext(options: FormatCurrentLineContextOptions): string {
+  return formatTextContext({
+    filePath: options.filePath,
+    range: options.range,
+    languageId: options.languageId,
+    label: "Current line:",
+    text: options.text
+  });
 }
 
 export function severityLabel(severity: number): string {
@@ -246,6 +262,23 @@ function formatInlineProblemMessage(message: string): string {
   }
 
   return `\`${normalizedMessage}\``;
+}
+
+function formatTextContext(options: {
+  readonly filePath: string;
+  readonly range: RangeLike;
+  readonly languageId?: string;
+  readonly label: string;
+  readonly text: string;
+}): string {
+  const location = `${options.filePath}:${options.range.start.line + 1}:${options.range.start.character + 1}`;
+
+  return [
+    `Location: ${location}`,
+    "",
+    options.label,
+    formatMarkdownCodeBlock(normalizeSelectedText(options.text), options.languageId)
+  ].join("\n");
 }
 
 function formatMarkdownCodeBlock(text: string, languageId?: string): string {

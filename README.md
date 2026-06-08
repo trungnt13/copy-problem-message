@@ -9,7 +9,7 @@ to the active terminal with a configurable instruction suffix.
 - Formats the problem as compact text with severity, language/source, location, and nearby code.
 - Sends the copied text to the active terminal for interactive agent CLI workflows.
 - Appends a configurable instruction when copying and running in the terminal.
-- Uses selected text as the terminal context when running with an active selection.
+- Uses selected text, or the current line when no text is selected, as the terminal context.
 - Warns for confirmation before copying or running selected text over 5000 characters.
 - Runs selected text even when there is no nearby problem, without appending the suffix.
 - Keeps terminal execution disabled in untrusted workspaces while still copying to the clipboard.
@@ -54,6 +54,9 @@ print("Hello, World!"
 ```
 ````
 
+When no text is selected, `Copy and Run in Terminal` uses the current line as
+the terminal context. Empty current lines are not sent to the terminal.
+
 ## Commands
 
 | Command | Description |
@@ -88,5 +91,5 @@ Use the `Run Extension` launch configuration to start an Extension Development H
 ## Publishing
 
 Build the VSIX with `npm run package:vsix`, then upload the generated
-`copy-problem-context-agent-0.0.3.vsix` from the Visual Studio Marketplace
+`copy-problem-context-agent-0.0.4.vsix` from the Visual Studio Marketplace
 publisher page.

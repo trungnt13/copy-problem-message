@@ -6,6 +6,7 @@ import {
   TextDocumentLike,
   appendRunSuffixMessage,
   defaultRunSuffixMessage,
+  formatCurrentLineContext,
   formatDocumentPath,
   formatProblemContext,
   formatSelectedContext,
@@ -173,6 +174,27 @@ test("formats selected text without a diagnostic", () => {
     "Selected text:",
     "```python",
     "print(\"Hello, World!\"",
+    "```"
+  ].join("\n"));
+});
+
+test("formats current line text without a diagnostic", () => {
+  const formatted = formatCurrentLineContext({
+    filePath: "/Users/example/project/tasks.md",
+    range: {
+      start: position(7, 0),
+      end: position(7, 42)
+    },
+    languageId: "markdown",
+    text: "Fix the failing parser test."
+  });
+
+  assert.equal(formatted, [
+    "Location: /Users/example/project/tasks.md:8:1",
+    "",
+    "Current line:",
+    "```markdown",
+    "Fix the failing parser test.",
     "```"
   ].join("\n"));
 });
