@@ -90,7 +90,7 @@ async function buildProblemContextText(): Promise<string | undefined> {
 
   if (!selection) {
     vscode.window.showWarningMessage(
-      `No problem found within ${contextLines} line${contextLines === 1 ? "" : "s"} of the cursor.`
+      formatNoProblemFoundMessage(contextLines)
     );
     return undefined;
   }
@@ -171,6 +171,14 @@ function getConfiguredRunSuffixMessage(): string {
   return normalizeRunSuffixMessage(
     vscode.workspace.getConfiguration("copyProblemMessage").get(runSuffixMessageSetting)
   );
+}
+
+function formatNoProblemFoundMessage(contextLines: number): string {
+  if (contextLines === 0) {
+    return "No problem found on the cursor line.";
+  }
+
+  return `No problem found within ${contextLines} line${contextLines === 1 ? "" : "s"} of the cursor.`;
 }
 
 async function getSelectedText(editor: vscode.TextEditor): Promise<SelectedText> {

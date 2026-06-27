@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.0.5
+
+- Default copied problem excerpts to the diagnostic line only.
+- Document `copyProblemMessage.contextLines` as the configurable extra-line window.
+
 ## 0.0.4
 
 - Use the current line as copy-and-run terminal context when no text is selected.

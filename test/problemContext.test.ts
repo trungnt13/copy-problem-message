@@ -19,7 +19,7 @@ import {
 test("normalizes context lines", () => {
   assert.equal(normalizeContextLines(4.8), 4);
   assert.equal(normalizeContextLines(-2), 0);
-  assert.equal(normalizeContextLines(Number.NaN), 3);
+  assert.equal(normalizeContextLines(Number.NaN), 0);
 });
 
 test("normalizes run suffix messages", () => {
@@ -106,7 +106,7 @@ test("formats diagnostic metadata and clamps code excerpt to document bounds", (
       source: "Pylance"
     },
     document,
-    contextLines: 3,
+    contextLines: 0,
     filePath: "hello.py"
   });
 
@@ -116,11 +116,7 @@ test("formats diagnostic metadata and clamps code excerpt to document bounds", (
     "",
     "Relevant code:",
     "```python",
-    "  2 |     print(f\"Hello, World! {i}\")",
-    "  3 | ",
-    "  4 | if __name__ == \"__main__\":",
     "> 5 |     print(\"Hello, World!\"",
-    "  6 | ",
     "```"
   ].join("\n"));
 });

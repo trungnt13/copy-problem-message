@@ -58,7 +58,7 @@ export interface UriPathLike {
   toString(skipEncoding?: boolean): string;
 }
 
-const defaultContextLines = 3;
+const defaultContextLines = 0;
 export const defaultRunSuffixMessage = "Understand the root cause and implement fix.";
 
 export function normalizeContextLines(value: unknown): number {
