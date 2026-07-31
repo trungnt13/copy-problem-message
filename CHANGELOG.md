@@ -1,9 +1,14 @@
 # Changelog
 
+## 0.0.6
+
+- Default copied problem excerpts to include three extra lines before and after the diagnostic.
+- Document `copyProblemMessage.contextLines` as the configurable extra-line window.
+- Keep diagnostic lookup configurable with `copyProblemMessage.searchLines`, defaulting to the cursor line only.
+
 ## 0.0.5
 
 - Default copied problem excerpts to the diagnostic line only.
-- Document `copyProblemMessage.contextLines` as the configurable extra-line window.
 
 ## 0.0.4
 

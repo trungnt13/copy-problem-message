@@ -5,21 +5,58 @@ import {
   PositionLike,
   TextDocumentLike,
   appendRunSuffixMessage,
+  defaultDiagnosticSearchLines,
   defaultRunSuffixMessage,
   formatCurrentLineContext,
   formatDocumentPath,
   formatProblemContext,
   formatSelectedContext,
   normalizeContextLines,
+  normalizeDiagnosticSearchLines,
   normalizeRunSuffixMessage,
   normalizeSelectedText,
+  resolveDiagnosticSearchLines,
   selectNearestDiagnostic
 } from "../src/problemContext";
 
 test("normalizes context lines", () => {
   assert.equal(normalizeContextLines(4.8), 4);
   assert.equal(normalizeContextLines(-2), 0);
-  assert.equal(normalizeContextLines(Number.NaN), 0);
+  assert.equal(normalizeContextLines(Number.NaN), 3);
+});
+
+test("normalizes diagnostic search lines", () => {
+  assert.equal(normalizeDiagnosticSearchLines(4.8), 4);
+  assert.equal(normalizeDiagnosticSearchLines(-2), 0);
+  assert.equal(normalizeDiagnosticSearchLines(Number.NaN), defaultDiagnosticSearchLines);
+});
+
+test("resolves diagnostic search lines from explicit search config", () => {
+  assert.equal(
+    resolveDiagnosticSearchLines({ globalValue: 5 }, { globalValue: 10 }),
+    5
+  );
+});
+
+test("resolves diagnostic search lines from explicit legacy context config", () => {
+  assert.equal(
+    resolveDiagnosticSearchLines(undefined, { workspaceValue: 10 }),
+    10
+  );
+});
+
+test("preserves an explicit zero diagnostic search window", () => {
+  assert.equal(
+    resolveDiagnosticSearchLines({ globalValue: 0 }, { workspaceValue: 10 }),
+    0
+  );
+});
+
+test("uses default diagnostic search lines when no override exists", () => {
+  assert.equal(
+    resolveDiagnosticSearchLines({ defaultValue: 0 }, { defaultValue: 3 }),
+    defaultDiagnosticSearchLines
+  );
 });
 
 test("normalizes run suffix messages", () => {
@@ -106,7 +143,7 @@ test("formats diagnostic metadata and clamps code excerpt to document bounds", (
       source: "Pylance"
     },
     document,
-    contextLines: 0,
+    contextLines: 3,
     filePath: "hello.py"
   });
 
@@ -116,7 +153,11 @@ test("formats diagnostic metadata and clamps code excerpt to document bounds", (
     "",
     "Relevant code:",
     "```python",
+    "  2 |     print(f\"Hello, World! {i}\")",
+    "  3 | ",
+    "  4 | if __name__ == \"__main__\":",
     "> 5 |     print(\"Hello, World!\"",
+    "  6 | ",
     "```"
   ].join("\n"));
 });

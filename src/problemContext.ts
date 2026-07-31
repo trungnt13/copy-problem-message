@@ -58,15 +58,75 @@ export interface UriPathLike {
   toString(skipEncoding?: boolean): string;
 }
 
-const defaultContextLines = 0;
+export interface ConfigurationInspectionLike {
+  readonly defaultValue?: unknown;
+  readonly globalValue?: unknown;
+  readonly workspaceValue?: unknown;
+  readonly workspaceFolderValue?: unknown;
+  readonly defaultLanguageValue?: unknown;
+  readonly globalLanguageValue?: unknown;
+  readonly workspaceLanguageValue?: unknown;
+  readonly workspaceFolderLanguageValue?: unknown;
+}
+
+const defaultContextLines = 3;
+export const defaultDiagnosticSearchLines = 0;
 export const defaultRunSuffixMessage = "Understand the root cause and implement fix.";
 
 export function normalizeContextLines(value: unknown): number {
+  return normalizeLineCount(value, defaultContextLines);
+}
+
+export function normalizeDiagnosticSearchLines(value: unknown): number {
+  return normalizeLineCount(value, defaultDiagnosticSearchLines);
+}
+
+export function resolveDiagnosticSearchLines(
+  searchLinesInspection: ConfigurationInspectionLike | undefined,
+  contextLinesInspection: ConfigurationInspectionLike | undefined
+): number {
+  const configuredSearchLines = getConfiguredOverrideValue(searchLinesInspection);
+  if (configuredSearchLines !== undefined) {
+    return normalizeDiagnosticSearchLines(configuredSearchLines);
+  }
+
+  const configuredContextLines = getConfiguredOverrideValue(contextLinesInspection);
+  if (configuredContextLines !== undefined) {
+    return normalizeContextLines(configuredContextLines);
+  }
+
+  return defaultDiagnosticSearchLines;
+}
+
+function normalizeLineCount(value: unknown, fallback: number): number {
   if (typeof value !== "number" || !Number.isFinite(value)) {
-    return defaultContextLines;
+    return fallback;
   }
 
   return Math.max(0, Math.floor(value));
+}
+
+function getConfiguredOverrideValue(inspection: ConfigurationInspectionLike | undefined): unknown {
+  if (!inspection) {
+    return undefined;
+  }
+
+  const overrideKeys = [
+    "workspaceFolderLanguageValue",
+    "workspaceLanguageValue",
+    "globalLanguageValue",
+    "workspaceFolderValue",
+    "workspaceValue",
+    "globalValue"
+  ] as const;
+
+  for (const key of overrideKeys) {
+    if (inspection[key] !== undefined) {
+      return inspection[key];
+    }
+  }
+
+  return undefined;
 }
 
 export function normalizeRunSuffixMessage(value: unknown): string {

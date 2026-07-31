@@ -9,8 +9,8 @@ This repo is prepared for Visual Studio Marketplace web upload as
 - Publisher: `tngo`
 - Package name: `copy-problem-context-agent`
 - Extension ID: `tngo.copy-problem-context-agent`
-- Current version: `0.0.5`
-- VSIX filename: `copy-problem-context-agent-0.0.5.vsix`
+- Current version: `0.0.6`
+- VSIX filename: `copy-problem-context-agent-0.0.6.vsix`
 
 ## Prerequisites
 
@@ -30,7 +30,7 @@ npm run package:list
 Install the generated VSIX locally before the first publish:
 
 ```sh
-code --install-extension ./copy-problem-context-agent-0.0.5.vsix --force
+code --install-extension ./copy-problem-context-agent-0.0.6.vsix --force
 ```
 
 Verify both commands from the Command Palette:
@@ -44,7 +44,7 @@ Verify both commands from the Command Palette:
 2. Sign in with the Microsoft account that manages the `tngo` publisher.
 3. Select the `tngo` publisher.
 4. Add or update the extension.
-5. Upload `copy-problem-context-agent-0.0.5.vsix` from this repo root.
+5. Upload `copy-problem-context-agent-0.0.6.vsix` from this repo root.
 6. Confirm the extension ID is `tngo.copy-problem-context-agent`.
 7. Review the README, icon, license, repository links, and version.
 8. Submit and wait for Marketplace validation to finish.

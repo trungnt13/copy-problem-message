@@ -6,6 +6,12 @@ These instructions govern how to implement extensions in this repository.
 - Build extensions that are robust, correct, and fast.
 - Prioritize behavior correctness and maintainability first; optimize for minimum necessary complexity and code size.
 
+## Publishing
+- Use "Chrome Control" skill
+- Open `https://marketplace.visualstudio.com/manage/publishers/tngo`
+- Select "Copy Problem Context Agent" extension
+- More actions -> update -> navigate in the explore to correct version of VSIX file
+
 ## Non-negotiables
 - Use TypeScript for all extension code unless a file already uses another language.
 - Target a strict, minimal API surface: only commands, listeners, settings, and helpers needed for the requested feature.

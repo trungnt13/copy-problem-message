@@ -2,7 +2,7 @@
   "name": "copy-problem-context-agent",
   "displayName": "Copy Problem Context Agent",
   "description": "Copy compact VS Code diagnostic context for agent prompts and terminal workflows.",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "publisher": "tngo",
   "private": false,
   "icon": "images/icon.png",
@@ -61,9 +61,15 @@
       "properties": {
         "copyProblemMessage.contextLines": {
           "type": "number",
+          "default": 3,
+          "minimum": 0,
+          "markdownDescription": "Number of extra lines before and after the selected diagnostic to include. The default of 3 includes three lines before and after the diagnostic line."
+        },
+        "copyProblemMessage.searchLines": {
+          "type": "number",
           "default": 0,
           "minimum": 0,
-          "markdownDescription": "Number of extra lines before and after the selected diagnostic to include. The default of 0 includes only the diagnostic line, and the same value is used as the maximum line distance from the cursor when finding a problem."
+          "markdownDescription": "Maximum line distance from the cursor when finding a diagnostic. The default of 0 searches only the cursor line. If this setting is not configured, an explicit `copyProblemMessage.contextLines` value is reused for lookup compatibility."
         },
         "copyProblemMessage.runSuffixMessage": {
           "type": "string",

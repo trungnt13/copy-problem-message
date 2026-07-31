@@ -6,7 +6,7 @@ to the active terminal with a configurable instruction suffix.
 ## Features
 
 - Copies the nearest diagnostic within a configurable line window.
-- Formats the problem as compact text with severity, language/source, location, and the diagnostic line by default.
+- Formats the problem as compact text with severity, language/source, location, and nearby code by default.
 - Sends the copied text to the active terminal for interactive agent CLI workflows.
 - Appends a configurable instruction when copying and running in the terminal.
 - Uses selected text, or the current line when no text is selected, as the terminal context.
@@ -24,7 +24,11 @@ Location: /Users/example/project/hello.py:5:10
 
 Relevant code:
 ```python
+  2 |     print(f"Hello, World! {i}")
+  3 |
+  4 | if __name__ == "__main__":
 > 5 |     print("Hello, World!"
+  6 |
 ```
 ````
 
@@ -64,7 +68,8 @@ the terminal context. Empty current lines are not sent to the terminal.
 
 | Setting | Default | Description |
 | --- | ---: | --- |
-| `copyProblemMessage.contextLines` | `0` | Number of extra lines before and after the diagnostic to include. The default includes only the diagnostic line, and the same value is used as the maximum line distance from the cursor when finding a problem. |
+| `copyProblemMessage.contextLines` | `3` | Number of extra lines before and after the diagnostic to include. |
+| `copyProblemMessage.searchLines` | `0` | Maximum line distance from the cursor when finding a diagnostic. The default searches only the cursor line. If unset, an explicit `copyProblemMessage.contextLines` value is reused for lookup compatibility. |
 | `copyProblemMessage.runSuffixMessage` | `Understand the root cause and implement fix.` | Message appended as `\n\n{message}` before sending text to the terminal. Set to an empty string to disable the suffix. |
 
 ## Package
@@ -87,5 +92,5 @@ Use the `Run Extension` launch configuration to start an Extension Development H
 ## Publishing
 
 Build the VSIX with `npm run package:vsix`, then upload the generated
-`copy-problem-context-agent-0.0.5.vsix` from the Visual Studio Marketplace
+`copy-problem-context-agent-0.0.6.vsix` from the Visual Studio Marketplace
 publisher page.

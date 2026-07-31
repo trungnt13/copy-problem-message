@@ -8,10 +8,12 @@ import {
   normalizeContextLines,
   normalizeRunSuffixMessage,
   normalizeSelectedText,
+  resolveDiagnosticSearchLines,
   selectNearestDiagnostic
 } from "./problemContext";
 
 const contextLinesSetting = "contextLines";
+const searchLinesSetting = "searchLines";
 const runSuffixMessageSetting = "runSuffixMessage";
 const maxSelectedTextCharacters = 5_000;
 const confirmLargeSelectionAction = "Continue";
@@ -85,12 +87,13 @@ async function buildProblemContextText(): Promise<string | undefined> {
   }
 
   const contextLines = getConfiguredContextLines();
+  const searchLines = getConfiguredSearchLines();
   const diagnostics = vscode.languages.getDiagnostics(editor.document.uri);
-  const selection = selectNearestDiagnostic(diagnostics, editor.selection.active, contextLines);
+  const selection = selectNearestDiagnostic(diagnostics, editor.selection.active, searchLines);
 
   if (!selection) {
     vscode.window.showWarningMessage(
-      formatNoProblemFoundMessage(contextLines)
+      formatNoProblemFoundMessage(searchLines)
     );
     return undefined;
   }
@@ -121,8 +124,9 @@ async function buildRunContextText(): Promise<RunContextText | undefined> {
   }
 
   const contextLines = getConfiguredContextLines();
+  const searchLines = getConfiguredSearchLines();
   const diagnostics = vscode.languages.getDiagnostics(editor.document.uri);
-  const selection = selectNearestDiagnostic(diagnostics, editor.selection.active, contextLines);
+  const selection = selectNearestDiagnostic(diagnostics, editor.selection.active, searchLines);
   const filePath = getDocumentPath(editor.document.uri);
 
   if (!selection) {
@@ -167,18 +171,26 @@ function getConfiguredContextLines(): number {
   );
 }
 
+function getConfiguredSearchLines(): number {
+  const configuration = vscode.workspace.getConfiguration("copyProblemMessage");
+  return resolveDiagnosticSearchLines(
+    configuration.inspect(searchLinesSetting),
+    configuration.inspect(contextLinesSetting)
+  );
+}
+
 function getConfiguredRunSuffixMessage(): string {
   return normalizeRunSuffixMessage(
     vscode.workspace.getConfiguration("copyProblemMessage").get(runSuffixMessageSetting)
   );
 }
 
-function formatNoProblemFoundMessage(contextLines: number): string {
-  if (contextLines === 0) {
+function formatNoProblemFoundMessage(searchLines: number): string {
+  if (searchLines === 0) {
     return "No problem found on the cursor line.";
   }
 
-  return `No problem found within ${contextLines} line${contextLines === 1 ? "" : "s"} of the cursor.`;
+  return `No problem found within ${searchLines} line${searchLines === 1 ? "" : "s"} of the cursor.`;
 }
 
 async function getSelectedText(editor: vscode.TextEditor): Promise<SelectedText> {
